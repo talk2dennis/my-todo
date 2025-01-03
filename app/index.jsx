@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Text, View, Pressable, TextInput, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../context/ThemeContext';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
@@ -11,7 +13,9 @@ export default function Index() {
   const [text, setText] = useState('');
 
   const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+  const router = useRouter();
   const style = createStyle(theme, colorScheme);
+
   // Add a new todo
   const AddTodo = () => {
     if (text.trim() === '') {
@@ -67,6 +71,10 @@ export default function Index() {
     );
   };
 
+  const handleRoute = (id) => {
+    router.push(`todos/${id}`);
+  }
+
 
   return (
     <SafeAreaView style={style.container}>
@@ -114,7 +122,7 @@ export default function Index() {
                 <Pressable onPress={() => toggleTodo(item.id)} style={style.todoText}>
                   <Text style={[ style.todoText, item.completed && style.completed ]}>{item.text}</Text>
                 </Pressable>
-                <Pressable onPress={() => enableEditing(item.id)}>
+                <Pressable onLongPress={()=> handleRoute(item.id)} onPress={() => enableEditing(item.id)}>
                   <FontAwesome5 name="edit" size={26} color="green" />
                 </Pressable>
                 <Pressable onPress={() => deleteTodo(item.id)}>
@@ -126,7 +134,7 @@ export default function Index() {
 
         )}
       />
-
+      <StatusBar style={colorScheme === 'light' ? 'dark' : 'light'} />
     </SafeAreaView>
   );
 }
