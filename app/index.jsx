@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from 'react';
-import { Text, View, Pressable, TextInput, StyleSheet, FlatList } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { Text, View, Pressable, TextInput, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemeContext } from '../context/ThemeContext';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
@@ -9,6 +10,8 @@ export default function Index() {
   const [todos, setTodos] = useState([]);
   const [text, setText] = useState('');
 
+  const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+  const style = createStyle(theme, colorScheme);
   // Add a new todo
   const AddTodo = () => {
     if (text.trim() === '') {
@@ -66,17 +69,28 @@ export default function Index() {
 
 
   return (
-    <SafeAreaView style={ style.container }>
-      <View style={ style.inputContainer }>
+    <SafeAreaView style={style.container}>
+      <View style={style.header}
+        pointerEvents='auto'
+      >
+        <Text style={style.headerText}>Todo App</Text>
+        <Pressable onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}>
+          {colorScheme === 'light'
+            ? <MaterialCommunityIcons name="white-balance-sunny" size={36} color={theme.text} />
+            : <MaterialCommunityIcons name="weather-sunny-off" size={36} color={theme.text} />
+          }
+        </Pressable>
+      </View>
+      <View style={style.inputContainer}>
         <TextInput
-        placeholder='Add a new todo'
-        placeholderTextColor={'gray'}
-        style= { style.input }
-        value={text}
-        onChangeText={setText}
+          placeholder='Add a new todo'
+          placeholderTextColor={'gray'}
+          style={style.input}
+          value={text}
+          onChangeText={setText}
         />
-        <Pressable onPress={AddTodo} style={ style.button }>
-          <Text style={ style.buttonText}>Add</Text>
+        <Pressable onPress={AddTodo} style={style.button}>
+          <Text style={style.buttonText}>Add</Text>
         </Pressable>
       </View>
       <FlatList
@@ -84,31 +98,31 @@ export default function Index() {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={style.todoContainer}>
-  {item.editing ? (
-    <>
-      <TextInput
-        style={style.editInput}
-        value={item.editText}
-        onChangeText={ (text) => updateEditText(item.id, text) }
-      />
-      <Pressable onPress={() => updateTodo(item.id)}>
-        <Text style={style.updateText}>Update</Text>
-      </Pressable>
-    </>
-  ) : (
-    <>
-      <Pressable onPress={() => toggleTodo(item.id)} style={style.todoText}>
-        <Text style={item.completed && style.completed}>{item.text}</Text>
-      </Pressable>
-      <Pressable onPress={() => enableEditing(item.id)}>
-        <FontAwesome5 name="edit" size={26} color="green" />
-      </Pressable>
-      <Pressable onPress={() => deleteTodo(item.id)}>
-        <MaterialCommunityIcons name="delete-circle-outline" size={36} color="red" />
-      </Pressable>
-    </>
-  )}
-</View>
+            {item.editing ? (
+              <>
+                <TextInput
+                  style={style.editInput}
+                  value={item.editText}
+                  onChangeText={(text) => updateEditText(item.id, text)}
+                />
+                <Pressable onPress={() => updateTodo(item.id)}>
+                  <Text style={style.updateText}>Update</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Pressable onPress={() => toggleTodo(item.id)} style={style.todoText}>
+                  <Text style={[ style.todoText, item.completed && style.completed ]}>{item.text}</Text>
+                </Pressable>
+                <Pressable onPress={() => enableEditing(item.id)}>
+                  <FontAwesome5 name="edit" size={26} color="green" />
+                </Pressable>
+                <Pressable onPress={() => deleteTodo(item.id)}>
+                  <MaterialCommunityIcons name="delete-circle-outline" size={36} color="red" />
+                </Pressable>
+              </>
+            )}
+          </View>
 
         )}
       />
@@ -117,74 +131,99 @@ export default function Index() {
   );
 }
 
-const style = StyleSheet.create({
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: 'black',
-    padding: 8,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  container: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 1024,
-    padding: 20,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: 1024,
-    marginTop: 20,
-    marginBottom: 40,
-    marginHorizontal: 'auto',
-  },
-  button: {
-    backgroundColor: 'blue',
-    padding: 10,
-    borderRadius: 5,
-    width: 80,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  todoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    width: '100%',
-    maxWidth: 1024,
-    marginBottom: 10,
-    marginHorizontal: 'auto',
-    gap: 10,
-    borderBottomColor: 'gray',
-    borderBottomWidth: 1,
-    borderLeftWidth: 1,
-    borderLeftColor: 'gray',
-  },
-  completed: {
-    textDecorationLine: 'line-through',
-    color: 'gray',
-  },
-  todoText: {
-    flex: 1,
-    padding: 10,
-  },
-  editInput: {
-    flex: 1,
-    padding: 10,
-    borderWidth: 0,
-  },
-  updateText: {
-    backgroundColor: 'blue',
-    color: 'white',
-    width: 80,
-    padding: 10,
-    borderRadius: 5,
-    textAlign: 'center',
-  },
-});
+const createStyle = (theme, colorScheme)=> {
+  return StyleSheet.create({
+    input: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: theme.acent,
+      padding: 8,
+      borderRadius: 5,
+      marginRight: 10,
+      color: theme.text,
+    },
+    container: {
+      flex: 1,
+      width: '100%',
+      maxWidth: 1024,
+      padding: 20,
+      marginHorizontal: 'auto',
+      backgroundColor: theme.background,
+    },
+    header: {
+      flexDirection: 'row',
+      width: '100%',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    headerText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      flex: 1,
+      color: theme.text,
+      textAlign: 'center',
+      
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+      maxWidth: 1024,
+      marginTop: 20,
+      marginBottom: 40,
+      marginHorizontal: 'auto',
+    },
+    button: {
+      backgroundColor: theme.buttonBackground,
+      padding: 10,
+      borderRadius: 5,
+      width: 80,
+      alignItems: 'center'
+      
+    },
+    buttonText: {
+      color: theme.buttonText,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    todoContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      width: '100%',
+      maxWidth: 1024,
+      marginBottom: 10,
+      marginHorizontal: 'auto',
+      gap: 10,
+      borderBottomColor: theme.acent,
+      borderBottomWidth: 1,
+      borderLeftWidth: 1,
+      borderLeftColor: theme.acent,
+    },
+    completed: {
+      textDecorationLine: 'line-through',
+      color: 'gray',
+    },
+    todoText: {
+      flex: 1,
+      padding: 10,
+      color: theme.text,
+    },
+    editInput: {
+      flex: 1,
+      padding: 10,
+      borderWidth: 0,
+      color: theme.text,
+      borderBlockColor: theme.acent,
+    },
+    updateText: {
+      backgroundColor: theme.buttonBackground,
+      color: theme.buttonText,
+      width: 80,
+      padding: 10,
+      borderRadius: 5,
+      textAlign: 'center',
+    },
+  });  
+};
